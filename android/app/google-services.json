@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "71670196982",
+    "project_id": "aryilproject",
+    "storage_bucket": "aryilproject.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:71670196982:android:18b41f87a59ea837fd1ad7",
+        "android_client_info": {
+          "package_name": "com.example.deneme01"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCjjthofu2UKfc7SPU6z288V3nCNF_y9co"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
