@@ -33,7 +33,7 @@ android {
         //versionCode = flutter.versionCode
         //versionName = flutter.versionName
         applicationId = "com.example.deneme01"
-        minSdkVersion(21)
+        minSdkVersion(23)
         targetSdkVersion(33)
         versionCode = 1
         versionName = "1.0"
