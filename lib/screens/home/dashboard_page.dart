@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../services/auth_service.dart';
+import '../../services/ndt_service.dart';
 import '../auth/login_page.dart';
+import '../test/new_test_page.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -11,7 +13,9 @@ class DashboardPage extends StatefulWidget {
 
 class _DashboardPageState extends State<DashboardPage> {
   final AuthService _authService = AuthService();
+  final NDTService _ndtService = NDTService();
   Map<String, dynamic>? userData;
+  Map<String, int> dailyStats = {'total': 0, 'ok': 0, 'kes': 0};
 
   @override
   void initState() {
@@ -21,9 +25,13 @@ class _DashboardPageState extends State<DashboardPage> {
 
   Future<void> _loadUserData() async {
     final data = await _authService.getUserData();
-    setState(() {
-      userData = data;
-    });
+    if (data != null) {
+      final stats = await _ndtService.getDailyStats(data['uid'] ?? '');
+      setState(() {
+        userData = data;
+        dailyStats = stats;
+      });
+    }
   }
 
   Future<void> _logout() async {
@@ -107,9 +115,9 @@ class _DashboardPageState extends State<DashboardPage> {
                   
                   Row(
                     children: [
-                      Expanded(child: _buildStatCard('Toplam', '12', 'Test', Icons.assignment, Colors.blue)),
+                      Expanded(child: _buildStatCard('Toplam', '${dailyStats['total']}', 'Test', Icons.assignment, Colors.blue)),
                       const SizedBox(width: 16),
-                      Expanded(child: _buildStatCard('OK', '10', 'Başarılı', Icons.check_circle, Colors.green)),
+                      Expanded(child: _buildStatCard('OK', '${dailyStats['ok']}', 'Başarılı', Icons.check_circle, Colors.green)),
                     ],
                   ),
                   const SizedBox(height: 24),
@@ -128,8 +136,11 @@ class _DashboardPageState extends State<DashboardPage> {
                       crossAxisSpacing: 16,
                       children: [
                         _buildActionCard('Yeni Test', Icons.add_circle, Colors.green, () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Yeni test sayfası yakında...')),
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const NewTestPage(),
+                            ),
                           );
                         }),
                         _buildActionCard('Geçmiş', Icons.history, Colors.blue, () {
