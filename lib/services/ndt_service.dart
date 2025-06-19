@@ -5,6 +5,9 @@ import '../models/reference_data.dart';
 class NDTService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  // Constructor - hiç parametre almıyor
+  NDTService();
+
   // NDT test kaydı ekle
   Future<String> addNDTRecord(NDTRecord record) async {
     try {
@@ -100,59 +103,53 @@ class NDTService {
     }
   }
 
-  // Test sonucunu hesapla (basit versiyon)
+  // Test sonucunu hesapla (standart bazlı)
   static String calculateTestResult({
-    required double positionStart,
-    required double lengthMm,
-    required double db,
-    required double depthStart,
+    required String testStandard,
+    required Map<String, dynamic> testData,
     ReferenceData? referenceData,
   }) {
-    // Basit hesaplama mantığı - Excel'deki detaylı hesaplamalar sonra eklenecek
-    
-    // Eğer referans veri yoksa, basit kurallara göre karar ver
-    if (referenceData == null) {
-      return _basicCalculation(positionStart, lengthMm, db, depthStart);
+    switch (testStandard) {
+      case 'PAUT':
+        return _calculatePAUTResult(testData, referenceData);
+      case 'VT':
+        return _calculateVTResult(testData);
+      case 'UT':
+        return _calculateUTResult(testData, referenceData);
+      default:
+        return 'OK';
     }
-
-    // Referans veriye göre hesaplama
-    return _advancedCalculation(
-      positionStart, lengthMm, db, depthStart, referenceData);
   }
 
-  // Basit hesaplama (referans veri yokken)
-  static String _basicCalculation(double position, double length, double db, double depth) {
-    // Basit tolerans değerleri
-    if (db > 6.0) return 'KES'; // DB değeri çok yüksek
-    if (depth > 4.0) return 'KES'; // Derinlik çok fazla
-    if (length > 10.0) return 'KES'; // Uzunluk çok fazla
+  // PAUT hesaplama
+  static String _calculatePAUTResult(Map<String, dynamic> data, ReferenceData? ref) {
+    double db = data['db']?.toDouble() ?? 0;
+    double depth = data['depthStart']?.toDouble() ?? 0;
+    double length = data['lengthMm']?.toDouble() ?? 0;
+    
+    if (db > 6.0) return 'KES';
+    if (depth > 4.0) return 'KES';
+    if (length > 10.0) return 'KES';
     
     return 'OK';
   }
 
-  // Gelişmiş hesaplama (referans veri ile)
-  static String _advancedCalculation(
-    double position, double length, double db, double depth, ReferenceData ref) {
+  // VT hesaplama
+  static String _calculateVTResult(Map<String, dynamic> data) {
+    double? defectSize = data['defectSize']?.toDouble();
+    if (defectSize != null && defectSize > 2.0) return 'KES';
+    return 'OK';
+  }
+
+  // UT hesaplama
+  static String _calculateUTResult(Map<String, dynamic> data, ReferenceData? ref) {
+    double amplitude = data['amplitude']?.toDouble() ?? 0;
+    double depth = data['depth']?.toDouble() ?? 0;
     
-    // A Seviye kontrolü
-    if (length <= ref.aSeviye.uzunluk) {
-      if (db >= ref.aSeviye.yukseklikMin && db <= ref.aSeviye.yukseklikMax) {
-        if (depth <= ref.maxDerinlik) {
-          return 'OK';
-        }
-      }
-    }
+    if (amplitude > 20.0) return 'KES';
+    if (depth > 4.0) return 'KES';
     
-    // B Seviye kontrolü
-    if (length <= ref.bSeviye.uzunluk) {
-      if (db >= ref.bSeviye.yukseklikMin && db <= ref.bSeviye.yukseklikMax) {
-        if (depth <= ref.maxDerinlik) {
-          return 'OK';
-        }
-      }
-    }
-    
-    return 'KES';
+    return 'OK';
   }
 
   // Hata bölgesini belirle

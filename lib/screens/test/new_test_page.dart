@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../models/ndt_record.dart';
+import '../../models/test_standard.dart';
 import '../../services/ndt_service.dart';
 import 'test_result_page.dart';
 
 class NewTestPage extends StatefulWidget {
-  const NewTestPage({super.key});
+  final TestStandard selectedStandard;
+  
+  const NewTestPage({super.key, required this.selectedStandard});
 
   @override
   State<NewTestPage> createState() => _NewTestPageState();
@@ -14,8 +17,8 @@ class NewTestPage extends StatefulWidget {
 class _NewTestPageState extends State<NewTestPage> {
   final _formKey = GlobalKey<FormState>();
   final _pageController = PageController();
-
-  // Form controllers
+  
+  // Form controllers - Temel bilgiler
   final _bolgeController = TextEditingController();
   final _contaNoController = TextEditingController();
   final _weldIdController = TextEditingController();
@@ -23,32 +26,33 @@ class _NewTestPageState extends State<NewTestPage> {
   final _kaynakci2Controller = TextEditingController();
   final _boruCapController = TextEditingController();
   final _malzemeKalinlikController = TextEditingController();
+  
+  // PAUT için controllers
   final _positionStartController = TextEditingController();
   final _lengthController = TextEditingController();
   final _dbController = TextEditingController();
   final _depthStartController = TextEditingController();
-
+  
+  // VT için controllers
+  final _defectSizeController = TextEditingController();
+  final _locationController = TextEditingController();
+  
+  // UT için controllers
+  final _amplitudeController = TextEditingController();
+  final _depthController = TextEditingController();
+  
   // Dropdown değerleri
   String _selectedEkip = 'Ekip A';
   String _selectedMalzemeKalite = '16Mo3';
   String _selectedDegerlendirmeSeviyesi = 'KÖK';
-
+  String _selectedSurfaceCondition = 'İyi';
+  String _selectedDefectType = 'Çatlak';
+  
   int _currentPage = 0;
   bool _isLoading = false;
 
-  final List<String> _ekipList = [
-    'Ekip A',
-    'Ekip B',
-    'Ekip C',
-    'Vardiya 1',
-    'Vardiya 2',
-  ];
-  final List<String> _malzemeKaliteList = [
-    '16Mo3',
-    '13CrMo4-5',
-    'P235GH',
-    'P265GH',
-  ];
+  final List<String> _ekipList = ['Ekip A', 'Ekip B', 'Ekip C', 'Vardiya 1', 'Vardiya 2'];
+  final List<String> _malzemeKaliteList = ['16Mo3', '13CrMo4-5', 'P235GH', 'P265GH'];
   final List<String> _degerlendirmeSeviyesiList = ['KÖK', 'DOLGU', 'KAPATMA'];
 
   @override
@@ -64,6 +68,10 @@ class _NewTestPageState extends State<NewTestPage> {
     _lengthController.dispose();
     _dbController.dispose();
     _depthStartController.dispose();
+    _defectSizeController.dispose();
+    _locationController.dispose();
+    _amplitudeController.dispose();
+    _depthController.dispose();
     super.dispose();
   }
 
@@ -94,17 +102,37 @@ class _NewTestPageState extends State<NewTestPage> {
       // Değerleri parse et
       double boruCap = double.parse(_boruCapController.text);
       double malzemeKalinlik = double.parse(_malzemeKalinlikController.text);
-      double positionStart = double.parse(_positionStartController.text);
-      double lengthMm = double.parse(_lengthController.text);
-      double db = double.parse(_dbController.text);
-      double depthStart = double.parse(_depthStartController.text);
-
+      
+      // Test verilerini standarda göre hazırla
+      Map<String, dynamic> testData = {};
+      
+      if (widget.selectedStandard.code == 'PAUT') {
+        testData = {
+          'positionStart': double.parse(_positionStartController.text),
+          'lengthMm': double.parse(_lengthController.text),
+          'db': double.parse(_dbController.text),
+          'depthStart': double.parse(_depthStartController.text),
+        };
+      } else if (widget.selectedStandard.code == 'VT') {
+        testData = {
+          'surfaceCondition': _selectedSurfaceCondition,
+          'defectType': _selectedDefectType,
+          'defectSize': double.parse(_defectSizeController.text),
+          'location': _locationController.text,
+        };
+      } else if (widget.selectedStandard.code == 'UT') {
+        testData = {
+          'positionStart': double.parse(_positionStartController.text),
+          'lengthMm': double.parse(_lengthController.text),
+          'amplitude': double.parse(_amplitudeController.text),
+          'depth': double.parse(_depthController.text),
+        };
+      }
+      
       // Test sonucunu hesapla
       String sonuc = NDTService.calculateTestResult(
-        positionStart: positionStart,
-        lengthMm: lengthMm,
-        db: db,
-        depthStart: depthStart,
+        testStandard: widget.selectedStandard.code,
+        testData: testData,
       );
 
       // Hata bölgesini belirle
@@ -115,6 +143,7 @@ class _NewTestPageState extends State<NewTestPage> {
 
       // NDT kaydı oluştur
       NDTRecord record = NDTRecord(
+        testStandard: widget.selectedStandard.code,
         ekip: _selectedEkip,
         bolge: _bolgeController.text,
         contaNo: _contaNoController.text,
@@ -125,10 +154,7 @@ class _NewTestPageState extends State<NewTestPage> {
         malzemeKalinlik: malzemeKalinlik,
         malzemeKalite: _selectedMalzemeKalite,
         degerlendirmeSeviyesi: _selectedDegerlendirmeSeviyesi,
-        positionStart: positionStart,
-        lengthMm: lengthMm,
-        db: db,
-        depthStart: depthStart,
+        testData: testData,
         sonuc: sonuc,
         hataBolgesi: hataBolgesi,
         testTarihi: DateTime.now(),
@@ -150,7 +176,10 @@ class _NewTestPageState extends State<NewTestPage> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Hata: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text('Hata: $e'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     } finally {
@@ -164,12 +193,14 @@ class _NewTestPageState extends State<NewTestPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Yeni NDT Testi'),
+        title: Text('${widget.selectedStandard.code} Test'),
+        backgroundColor: _getStandardColor(),
+        foregroundColor: Colors.white,
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(4),
           child: LinearProgressIndicator(
             value: (_currentPage + 1) / 3,
-            backgroundColor: Colors.blue[100],
+            backgroundColor: Colors.white.withOpacity(0.3),
             valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
           ),
         ),
@@ -196,12 +227,46 @@ class _NewTestPageState extends State<NewTestPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Standart Bilgisi
+          Card(
+            color: _getStandardColor().withOpacity(0.1),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Icon(_getStandardIcon(), color: _getStandardColor(), size: 32),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.selectedStandard.code,
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: _getStandardColor(),
+                          ),
+                        ),
+                        Text(
+                          widget.selectedStandard.name,
+                          style: const TextStyle(color: Colors.grey),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+          
           const Text(
             '1. Test Bilgileri',
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 20),
-
+          
           // Ekip Seçimi
           DropdownButtonFormField<String>(
             value: _selectedEkip,
@@ -210,9 +275,10 @@ class _NewTestPageState extends State<NewTestPage> {
               border: OutlineInputBorder(),
               prefixIcon: Icon(Icons.group),
             ),
-            items: _ekipList
-                .map((ekip) => DropdownMenuItem(value: ekip, child: Text(ekip)))
-                .toList(),
+            items: _ekipList.map((ekip) => DropdownMenuItem(
+              value: ekip,
+              child: Text(ekip),
+            )).toList(),
             onChanged: (value) => setState(() => _selectedEkip = value!),
           ),
           const SizedBox(height: 16),
@@ -226,8 +292,7 @@ class _NewTestPageState extends State<NewTestPage> {
               prefixIcon: Icon(Icons.location_on),
               hintText: 'Örn: 57KOLLEKTÖR',
             ),
-            validator: (value) =>
-                value?.isEmpty ?? true ? 'Bölge gerekli' : null,
+            validator: (value) => value?.isEmpty ?? true ? 'Bölge gerekli' : null,
           ),
           const SizedBox(height: 16),
 
@@ -240,8 +305,7 @@ class _NewTestPageState extends State<NewTestPage> {
               prefixIcon: Icon(Icons.tag),
               hintText: 'Örn: BK1-154-2',
             ),
-            validator: (value) =>
-                value?.isEmpty ?? true ? 'Conta No gerekli' : null,
+            validator: (value) => value?.isEmpty ?? true ? 'Conta No gerekli' : null,
           ),
           const SizedBox(height: 16),
 
@@ -252,7 +316,6 @@ class _NewTestPageState extends State<NewTestPage> {
               labelText: 'Weld ID',
               border: OutlineInputBorder(),
               prefixIcon: Icon(Icons.settings),
-              hintText: 'Otomatik oluşturulacak',
             ),
           ),
           const SizedBox(height: 16),
@@ -265,8 +328,7 @@ class _NewTestPageState extends State<NewTestPage> {
               border: OutlineInputBorder(),
               prefixIcon: Icon(Icons.person),
             ),
-            validator: (value) =>
-                value?.isEmpty ?? true ? 'Kaynakçı No 1 gerekli' : null,
+            validator: (value) => value?.isEmpty ?? true ? 'Kaynakçı No 1 gerekli' : null,
           ),
           const SizedBox(height: 16),
 
@@ -340,14 +402,11 @@ class _NewTestPageState extends State<NewTestPage> {
               border: OutlineInputBorder(),
               prefixIcon: Icon(Icons.category),
             ),
-            items: _malzemeKaliteList
-                .map(
-                  (kalite) =>
-                      DropdownMenuItem(value: kalite, child: Text(kalite)),
-                )
-                .toList(),
-            onChanged: (value) =>
-                setState(() => _selectedMalzemeKalite = value!),
+            items: _malzemeKaliteList.map((kalite) => DropdownMenuItem(
+              value: kalite,
+              child: Text(kalite),
+            )).toList(),
+            onChanged: (value) => setState(() => _selectedMalzemeKalite = value!),
           ),
           const SizedBox(height: 16),
 
@@ -359,35 +418,11 @@ class _NewTestPageState extends State<NewTestPage> {
               border: OutlineInputBorder(),
               prefixIcon: Icon(Icons.layers),
             ),
-            items: _degerlendirmeSeviyesiList
-                .map(
-                  (seviye) =>
-                      DropdownMenuItem(value: seviye, child: Text(seviye)),
-                )
-                .toList(),
-            onChanged: (value) =>
-                setState(() => _selectedDegerlendirmeSeviyesi = value!),
-          ),
-          const SizedBox(height: 20),
-
-          // Bilgi kartı
-          Card(
-            color: Colors.blue[50],
-            child: const Padding(
-              padding: EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  Icon(Icons.info, color: Colors.blue),
-                  SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'Bu bilgiler referans verilerle eşleştirilecek ve otomatik hesaplama yapılacaktır.',
-                      style: TextStyle(color: Colors.blue),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            items: _degerlendirmeSeviyesiList.map((seviye) => DropdownMenuItem(
+              value: seviye,
+              child: Text(seviye),
+            )).toList(),
+            onChanged: (value) => setState(() => _selectedDegerlendirmeSeviyesi = value!),
           ),
         ],
       ),
@@ -400,82 +435,17 @@ class _NewTestPageState extends State<NewTestPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            '3. Ölçüm Değerleri',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          Text(
+            '3. ${widget.selectedStandard.code} Ölçüm Değerleri',
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 20),
 
-          // Position Start
-          TextFormField(
-            controller: _positionStartController,
-            keyboardType: TextInputType.number,
-            decoration: const InputDecoration(
-              labelText: 'Position Start',
-              border: OutlineInputBorder(),
-              prefixIcon: Icon(Icons.start),
-              hintText: 'Örn: 32.4',
-            ),
-            validator: (value) {
-              if (value?.isEmpty ?? true) return 'Position Start gerekli';
-              if (double.tryParse(value!) == null) return 'Geçerli sayı girin';
-              return null;
-            },
-          ),
-          const SizedBox(height: 16),
+          // Standart bazlı form alanları
+          if (widget.selectedStandard.code == 'PAUT') ..._buildPAUTFields(),
+          if (widget.selectedStandard.code == 'VT') ..._buildVTFields(),
+          if (widget.selectedStandard.code == 'UT') ..._buildUTFields(),
 
-          // Length (mm)
-          TextFormField(
-            controller: _lengthController,
-            keyboardType: TextInputType.number,
-            decoration: const InputDecoration(
-              labelText: 'Length (mm)',
-              border: OutlineInputBorder(),
-              prefixIcon: Icon(Icons.straighten),
-              hintText: 'Örn: 5.4',
-            ),
-            validator: (value) {
-              if (value?.isEmpty ?? true) return 'Length gerekli';
-              if (double.tryParse(value!) == null) return 'Geçerli sayı girin';
-              return null;
-            },
-          ),
-          const SizedBox(height: 16),
-
-          // DB
-          TextFormField(
-            controller: _dbController,
-            keyboardType: TextInputType.number,
-            decoration: const InputDecoration(
-              labelText: 'DB',
-              border: OutlineInputBorder(),
-              prefixIcon: Icon(Icons.height),
-              hintText: 'Örn: 6.0',
-            ),
-            validator: (value) {
-              if (value?.isEmpty ?? true) return 'DB gerekli';
-              if (double.tryParse(value!) == null) return 'Geçerli sayı girin';
-              return null;
-            },
-          ),
-          const SizedBox(height: 16),
-
-          // Depth Start
-          TextFormField(
-            controller: _depthStartController,
-            keyboardType: TextInputType.number,
-            decoration: const InputDecoration(
-              labelText: 'Depth Start',
-              border: OutlineInputBorder(),
-              prefixIcon: Icon(Icons.vertical_align_bottom),
-              hintText: 'Örn: 3.9',
-            ),
-            validator: (value) {
-              if (value?.isEmpty ?? true) return 'Depth Start gerekli';
-              if (double.tryParse(value!) == null) return 'Geçerli sayı girin';
-              return null;
-            },
-          ),
           const SizedBox(height: 20),
 
           // Gerçek zamanlı hesaplama kartı
@@ -485,15 +455,15 @@ class _NewTestPageState extends State<NewTestPage> {
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  const Row(
+                  Row(
                     children: [
-                      Icon(Icons.calculate, color: Colors.orange),
-                      SizedBox(width: 12),
+                      Icon(Icons.calculate, color: _getStandardColor()),
+                      const SizedBox(width: 12),
                       Text(
                         'Gerçek Zamanlı Hesaplama',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          color: Colors.orange,
+                          color: _getStandardColor(),
                         ),
                       ),
                     ],
@@ -504,9 +474,7 @@ class _NewTestPageState extends State<NewTestPage> {
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: _getPreviewResult().contains('OK')
-                          ? Colors.green
-                          : Colors.red,
+                      color: _getPreviewResult().contains('OK') ? Colors.green : Colors.red,
                     ),
                   ),
                 ],
@@ -518,24 +486,285 @@ class _NewTestPageState extends State<NewTestPage> {
     );
   }
 
+  List<Widget> _buildPAUTFields() {
+    return [
+      // Position Start
+      TextFormField(
+        controller: _positionStartController,
+        keyboardType: TextInputType.number,
+        decoration: const InputDecoration(
+          labelText: 'Position Start',
+          border: OutlineInputBorder(),
+          prefixIcon: Icon(Icons.start),
+          hintText: 'Örn: 32.4',
+        ),
+        validator: (value) {
+          if (value?.isEmpty ?? true) return 'Position Start gerekli';
+          if (double.tryParse(value!) == null) return 'Geçerli sayı girin';
+          return null;
+        },
+      ),
+      const SizedBox(height: 16),
+
+      // Length (mm)
+      TextFormField(
+        controller: _lengthController,
+        keyboardType: TextInputType.number,
+        decoration: const InputDecoration(
+          labelText: 'Length (mm)',
+          border: OutlineInputBorder(),
+          prefixIcon: Icon(Icons.straighten),
+          hintText: 'Örn: 5.4',
+        ),
+        validator: (value) {
+          if (value?.isEmpty ?? true) return 'Length gerekli';
+          if (double.tryParse(value!) == null) return 'Geçerli sayı girin';
+          return null;
+        },
+      ),
+      const SizedBox(height: 16),
+
+      // DB
+      TextFormField(
+        controller: _dbController,
+        keyboardType: TextInputType.number,
+        decoration: const InputDecoration(
+          labelText: 'DB',
+          border: OutlineInputBorder(),
+          prefixIcon: Icon(Icons.height),
+          hintText: 'Örn: 6.0',
+        ),
+        validator: (value) {
+          if (value?.isEmpty ?? true) return 'DB gerekli';
+          if (double.tryParse(value!) == null) return 'Geçerli sayı girin';
+          return null;
+        },
+      ),
+      const SizedBox(height: 16),
+
+      // Depth Start
+      TextFormField(
+        controller: _depthStartController,
+        keyboardType: TextInputType.number,
+        decoration: const InputDecoration(
+          labelText: 'Depth Start',
+          border: OutlineInputBorder(),
+          prefixIcon: Icon(Icons.vertical_align_bottom),
+          hintText: 'Örn: 3.9',
+        ),
+        validator: (value) {
+          if (value?.isEmpty ?? true) return 'Depth Start gerekli';
+          if (double.tryParse(value!) == null) return 'Geçerli sayı girin';
+          return null;
+        },
+      ),
+    ];
+  }
+
+  List<Widget> _buildVTFields() {
+    return [
+      // Surface Condition
+      DropdownButtonFormField<String>(
+        value: _selectedSurfaceCondition,
+        decoration: const InputDecoration(
+          labelText: 'Yüzey Durumu',
+          border: OutlineInputBorder(),
+          prefixIcon: Icon(Icons.texture),
+        ),
+        items: ['İyi', 'Orta', 'Kötü'].map((condition) => DropdownMenuItem(
+          value: condition,
+          child: Text(condition),
+        )).toList(),
+        onChanged: (value) => setState(() => _selectedSurfaceCondition = value!),
+      ),
+      const SizedBox(height: 16),
+
+      // Defect Type
+      DropdownButtonFormField<String>(
+        value: _selectedDefectType,
+        decoration: const InputDecoration(
+          labelText: 'Kusur Tipi',
+          border: OutlineInputBorder(),
+          prefixIcon: Icon(Icons.warning),
+        ),
+        items: ['Çatlak', 'Gözeneklilik', 'İnklüzyon', 'Yüzey Hatası'].map((defect) => DropdownMenuItem(
+          value: defect,
+          child: Text(defect),
+        )).toList(),
+        onChanged: (value) => setState(() => _selectedDefectType = value!),
+      ),
+      const SizedBox(height: 16),
+
+      // Defect Size
+      TextFormField(
+        controller: _defectSizeController,
+        keyboardType: TextInputType.number,
+        decoration: const InputDecoration(
+          labelText: 'Kusur Boyutu (mm)',
+          border: OutlineInputBorder(),
+          prefixIcon: Icon(Icons.straighten),
+          hintText: 'Örn: 1.5',
+        ),
+        validator: (value) {
+          if (value?.isEmpty ?? true) return 'Kusur boyutu gerekli';
+          if (double.tryParse(value!) == null) return 'Geçerli sayı girin';
+          return null;
+        },
+      ),
+      const SizedBox(height: 16),
+
+      // Location
+      TextFormField(
+        controller: _locationController,
+        decoration: const InputDecoration(
+          labelText: 'Konum',
+          border: OutlineInputBorder(),
+          prefixIcon: Icon(Icons.place),
+          hintText: 'Kusur konumu',
+        ),
+        validator: (value) => value?.isEmpty ?? true ? 'Konum gerekli' : null,
+      ),
+    ];
+  }
+
+  List<Widget> _buildUTFields() {
+    return [
+      // Position Start
+      TextFormField(
+        controller: _positionStartController,
+        keyboardType: TextInputType.number,
+        decoration: const InputDecoration(
+          labelText: 'Position Start',
+          border: OutlineInputBorder(),
+          prefixIcon: Icon(Icons.start),
+          hintText: 'Örn: 32.4',
+        ),
+        validator: (value) {
+          if (value?.isEmpty ?? true) return 'Position Start gerekli';
+          if (double.tryParse(value!) == null) return 'Geçerli sayı girin';
+          return null;
+        },
+      ),
+      const SizedBox(height: 16),
+
+      // Length (mm)
+      TextFormField(
+        controller: _lengthController,
+        keyboardType: TextInputType.number,
+        decoration: const InputDecoration(
+          labelText: 'Length (mm)',
+          border: OutlineInputBorder(),
+          prefixIcon: Icon(Icons.straighten),
+          hintText: 'Örn: 5.4',
+        ),
+        validator: (value) {
+          if (value?.isEmpty ?? true) return 'Length gerekli';
+          if (double.tryParse(value!) == null) return 'Geçerli sayı girin';
+          return null;
+        },
+      ),
+      const SizedBox(height: 16),
+
+      // Amplitude
+      TextFormField(
+        controller: _amplitudeController,
+        keyboardType: TextInputType.number,
+        decoration: const InputDecoration(
+          labelText: 'Amplitude',
+          border: OutlineInputBorder(),
+          prefixIcon: Icon(Icons.graphic_eq),
+          hintText: 'Örn: 15.0',
+        ),
+        validator: (value) {
+          if (value?.isEmpty ?? true) return 'Amplitude gerekli';
+          if (double.tryParse(value!) == null) return 'Geçerli sayı girin';
+          return null;
+        },
+      ),
+      const SizedBox(height: 16),
+
+      // Depth
+      TextFormField(
+        controller: _depthController,
+        keyboardType: TextInputType.number,
+        decoration: const InputDecoration(
+          labelText: 'Depth',
+          border: OutlineInputBorder(),
+          prefixIcon: Icon(Icons.vertical_align_bottom),
+          hintText: 'Örn: 3.9',
+        ),
+        validator: (value) {
+          if (value?.isEmpty ?? true) return 'Depth gerekli';
+          if (double.tryParse(value!) == null) return 'Geçerli sayı girin';
+          return null;
+        },
+      ),
+    ];
+  }
+
+  Color _getStandardColor() {
+    switch (widget.selectedStandard.code) {
+      case 'PAUT':
+        return Colors.purple;
+      case 'VT':
+        return Colors.green;
+      case 'UT':
+        return Colors.orange;
+      default:
+        return Colors.blue;
+    }
+  }
+
+  IconData _getStandardIcon() {
+    switch (widget.selectedStandard.code) {
+      case 'PAUT':
+        return Icons.radar;
+      case 'VT':
+        return Icons.visibility;
+      case 'UT':
+        return Icons.graphic_eq;
+      default:
+        return Icons.science;
+    }
+  }
+
   String _getPreviewResult() {
     try {
-      if (_positionStartController.text.isNotEmpty &&
-          _lengthController.text.isNotEmpty &&
-          _dbController.text.isNotEmpty &&
-          _depthStartController.text.isNotEmpty) {
-        double position = double.parse(_positionStartController.text);
-        double length = double.parse(_lengthController.text);
-        double db = double.parse(_dbController.text);
-        double depth = double.parse(_depthStartController.text);
-
+      Map<String, dynamic> testData = {};
+      
+      if (widget.selectedStandard.code == 'PAUT') {
+        if (_positionStartController.text.isNotEmpty &&
+            _lengthController.text.isNotEmpty &&
+            _dbController.text.isNotEmpty &&
+            _depthStartController.text.isNotEmpty) {
+          testData = {
+            'positionStart': double.parse(_positionStartController.text),
+            'lengthMm': double.parse(_lengthController.text),
+            'db': double.parse(_dbController.text),
+            'depthStart': double.parse(_depthStartController.text),
+          };
+        }
+      } else if (widget.selectedStandard.code == 'VT') {
+        if (_defectSizeController.text.isNotEmpty) {
+          testData = {
+            'defectSize': double.parse(_defectSizeController.text),
+          };
+        }
+      } else if (widget.selectedStandard.code == 'UT') {
+        if (_amplitudeController.text.isNotEmpty && _depthController.text.isNotEmpty) {
+          testData = {
+            'amplitude': double.parse(_amplitudeController.text),
+            'depth': double.parse(_depthController.text),
+          };
+        }
+      }
+      
+      if (testData.isNotEmpty) {
         String result = NDTService.calculateTestResult(
-          positionStart: position,
-          lengthMm: length,
-          db: db,
-          depthStart: depth,
+          testStandard: widget.selectedStandard.code,
+          testData: testData,
         );
-
+        
         return result == 'OK' ? '✅ Ön Sonuç: OK' : '❌ Ön Sonuç: KES';
       }
     } catch (e) {
@@ -569,24 +798,23 @@ class _NewTestPageState extends State<NewTestPage> {
                 label: const Text('Geri'),
               ),
             ),
-
+          
           if (_currentPage > 0) const SizedBox(width: 16),
-
+          
           // İleri/Bitir butonu
           Expanded(
             flex: _currentPage == 0 ? 1 : 2,
             child: ElevatedButton.icon(
-              onPressed: _isLoading
-                  ? null
-                  : (_currentPage == 2 ? _submitTest : _nextPage),
-              icon: _isLoading
+              onPressed: _isLoading ? null : (_currentPage == 2 ? _submitTest : _nextPage),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _getStandardColor(),
+                foregroundColor: Colors.white,
+              ),
+              icon: _isLoading 
                   ? const SizedBox(
                       width: 20,
                       height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
+                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                     )
                   : Icon(_currentPage == 2 ? Icons.check : Icons.arrow_forward),
               label: Text(_currentPage == 2 ? 'Testi Tamamla' : 'İleri'),

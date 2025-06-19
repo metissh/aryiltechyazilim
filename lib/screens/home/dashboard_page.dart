@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../services/auth_service.dart';
 import '../../services/ndt_service.dart';
 import '../auth/login_page.dart';
-import '../test/new_test_page.dart';
+import '../test/standard_selection_page.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -13,7 +13,6 @@ class DashboardPage extends StatefulWidget {
 
 class _DashboardPageState extends State<DashboardPage> {
   final AuthService _authService = AuthService();
-  final NDTService _ndtService = NDTService();
   Map<String, dynamic>? userData;
   Map<String, int> dailyStats = {'total': 0, 'ok': 0, 'kes': 0};
 
@@ -26,11 +25,22 @@ class _DashboardPageState extends State<DashboardPage> {
   Future<void> _loadUserData() async {
     final data = await _authService.getUserData();
     if (data != null) {
-      final stats = await _ndtService.getDailyStats(data['uid'] ?? '');
-      setState(() {
-        userData = data;
-        dailyStats = stats;
-      });
+      try {
+        // NDTService instance oluştur ve kullan
+        final ndtService = NDTService();
+        final stats = await ndtService.getDailyStats(data['uid'] ?? '');
+        setState(() {
+          userData = data;
+          dailyStats = stats;
+        });
+      } catch (e) {
+        // Hata durumunda varsayılan değerler
+        setState(() {
+          userData = data;
+          dailyStats = {'total': 0, 'ok': 0, 'kes': 0};
+        });
+        print('NDTService hatası: $e');
+      }
     }
   }
 
@@ -139,7 +149,7 @@ class _DashboardPageState extends State<DashboardPage> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => const NewTestPage(),
+                              builder: (context) => const StandardSelectionPage(),
                             ),
                           );
                         }),

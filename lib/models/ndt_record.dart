@@ -1,5 +1,6 @@
 class NDTRecord {
   final String? id;
+  final String testStandard; // 'PAUT', 'VT', 'UT'
   final String ekip;
   final String bolge;
   final String contaNo;
@@ -10,10 +11,10 @@ class NDTRecord {
   final double malzemeKalinlik;
   final String malzemeKalite;
   final String degerlendirmeSeviyesi;
-  final double positionStart;
-  final double lengthMm;
-  final double db;
-  final double depthStart;
+  
+  // Standart bazlı test verileri
+  final Map<String, dynamic> testData;
+  
   final String sonuc; // "OK" veya "KES"
   final String hataBolgesi;
   final DateTime testTarihi;
@@ -21,6 +22,7 @@ class NDTRecord {
 
   NDTRecord({
     this.id,
+    required this.testStandard,
     required this.ekip,
     required this.bolge,
     required this.contaNo,
@@ -31,19 +33,33 @@ class NDTRecord {
     required this.malzemeKalinlik,
     required this.malzemeKalite,
     required this.degerlendirmeSeviyesi,
-    required this.positionStart,
-    required this.lengthMm,
-    required this.db,
-    required this.depthStart,
+    required this.testData,
     required this.sonuc,
     required this.hataBolgesi,
     required this.testTarihi,
     required this.testEdenKullanici,
   });
 
+  // PAUT için özel getters
+  double? get positionStart => testData['positionStart']?.toDouble();
+  double? get lengthMm => testData['lengthMm']?.toDouble();
+  double? get db => testData['db']?.toDouble();
+  double? get depthStart => testData['depthStart']?.toDouble();
+
+  // VT için özel getters
+  String? get surfaceCondition => testData['surfaceCondition'];
+  String? get defectType => testData['defectType'];
+  double? get defectSize => testData['defectSize']?.toDouble();
+  String? get location => testData['location'];
+
+  // UT için özel getters
+  double? get amplitude => testData['amplitude']?.toDouble();
+  double? get depth => testData['depth']?.toDouble();
+
   // Firestore'a kaydetmek için Map'e çevir
   Map<String, dynamic> toMap() {
     return {
+      'testStandard': testStandard,
       'ekip': ekip,
       'bolge': bolge,
       'contaNo': contaNo,
@@ -54,10 +70,7 @@ class NDTRecord {
       'malzemeKalinlik': malzemeKalinlik,
       'malzemeKalite': malzemeKalite,
       'degerlendirmeSeviyesi': degerlendirmeSeviyesi,
-      'positionStart': positionStart,
-      'lengthMm': lengthMm,
-      'db': db,
-      'depthStart': depthStart,
+      'testData': testData,
       'sonuc': sonuc,
       'hataBolgesi': hataBolgesi,
       'testTarihi': testTarihi,
@@ -69,6 +82,7 @@ class NDTRecord {
   factory NDTRecord.fromMap(Map<String, dynamic> map, String documentId) {
     return NDTRecord(
       id: documentId,
+      testStandard: map['testStandard'] ?? 'PAUT',
       ekip: map['ekip'] ?? '',
       bolge: map['bolge'] ?? '',
       contaNo: map['contaNo'] ?? '',
@@ -79,10 +93,7 @@ class NDTRecord {
       malzemeKalinlik: (map['malzemeKalinlik'] ?? 0).toDouble(),
       malzemeKalite: map['malzemeKalite'] ?? '',
       degerlendirmeSeviyesi: map['degerlendirmeSeviyesi'] ?? '',
-      positionStart: (map['positionStart'] ?? 0).toDouble(),
-      lengthMm: (map['lengthMm'] ?? 0).toDouble(),
-      db: (map['db'] ?? 0).toDouble(),
-      depthStart: (map['depthStart'] ?? 0).toDouble(),
+      testData: Map<String, dynamic>.from(map['testData'] ?? {}),
       sonuc: map['sonuc'] ?? '',
       hataBolgesi: map['hataBolgesi'] ?? '',
       testTarihi: map['testTarihi']?.toDate() ?? DateTime.now(),
@@ -93,6 +104,7 @@ class NDTRecord {
   // Test sonucunu hesaplamak için kopyalama fonksiyonu
   NDTRecord copyWith({
     String? id,
+    String? testStandard,
     String? ekip,
     String? bolge,
     String? contaNo,
@@ -103,10 +115,7 @@ class NDTRecord {
     double? malzemeKalinlik,
     String? malzemeKalite,
     String? degerlendirmeSeviyesi,
-    double? positionStart,
-    double? lengthMm,
-    double? db,
-    double? depthStart,
+    Map<String, dynamic>? testData,
     String? sonuc,
     String? hataBolgesi,
     DateTime? testTarihi,
@@ -114,6 +123,7 @@ class NDTRecord {
   }) {
     return NDTRecord(
       id: id ?? this.id,
+      testStandard: testStandard ?? this.testStandard,
       ekip: ekip ?? this.ekip,
       bolge: bolge ?? this.bolge,
       contaNo: contaNo ?? this.contaNo,
@@ -124,10 +134,7 @@ class NDTRecord {
       malzemeKalinlik: malzemeKalinlik ?? this.malzemeKalinlik,
       malzemeKalite: malzemeKalite ?? this.malzemeKalite,
       degerlendirmeSeviyesi: degerlendirmeSeviyesi ?? this.degerlendirmeSeviyesi,
-      positionStart: positionStart ?? this.positionStart,
-      lengthMm: lengthMm ?? this.lengthMm,
-      db: db ?? this.db,
-      depthStart: depthStart ?? this.depthStart,
+      testData: testData ?? this.testData,
       sonuc: sonuc ?? this.sonuc,
       hataBolgesi: hataBolgesi ?? this.hataBolgesi,
       testTarihi: testTarihi ?? this.testTarihi,
