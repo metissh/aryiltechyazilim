@@ -48,7 +48,7 @@ class TestResultPage extends StatelessWidget {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16),
                   gradient: LinearGradient(
-                    colors: isOK 
+                    colors: isOK
                         ? [Colors.green[400]!, Colors.green[600]!]
                         : [Colors.red[400]!, Colors.red[600]!],
                     begin: Alignment.topLeft,
@@ -57,11 +57,7 @@ class TestResultPage extends StatelessWidget {
                 ),
                 child: Column(
                   children: [
-                    Icon(
-                      resultIcon,
-                      size: 80,
-                      color: Colors.white,
-                    ),
+                    Icon(resultIcon, size: 80, color: Colors.white),
                     const SizedBox(height: 16),
                     Text(
                       record.sonuc,
@@ -81,13 +77,18 @@ class TestResultPage extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.2),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
-                        DateFormat('dd.MM.yyyy - HH:mm').format(record.testTarihi),
+                        DateFormat(
+                          'dd.MM.yyyy - HH:mm',
+                        ).format(record.testTarihi),
                         style: const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.w500,
@@ -118,19 +119,30 @@ class TestResultPage extends StatelessWidget {
               _buildDetailRow('Çap', '${record.boruCap} mm'),
               _buildDetailRow('Kalınlık', '${record.malzemeKalinlik} mm'),
               _buildDetailRow('Malzeme Kalite', record.malzemeKalite),
-              _buildDetailRow('Değerlendirme Seviyesi', record.degerlendirmeSeviyesi),
+              _buildDetailRow(
+                'Değerlendirme Seviyesi',
+                record.degerlendirmeSeviyesi,
+              ),
             ]),
 
             const SizedBox(height: 16),
 
             // Ölçüm Değerleri
             _buildDetailCard('Ölçüm Değerleri', [
-              _buildDetailRow('Position Start', record.positionStart.toString()),
+              _buildDetailRow(
+                'Position Start',
+                record.positionStart.toString(),
+              ),
               _buildDetailRow('Length (mm)', record.lengthMm.toString()),
               _buildDetailRow('DB', record.db.toString()),
               _buildDetailRow('Depth Start', record.depthStart.toString()),
-              _buildDetailRow('Hata Bölgesi', record.hataBolgesi, 
-                  color: record.hataBolgesi == 'YOK' ? Colors.green : Colors.orange),
+              _buildDetailRow(
+                'Hata Bölgesi',
+                record.hataBolgesi,
+                color: record.hataBolgesi == 'YOK'
+                    ? Colors.green
+                    : Colors.orange,
+              ),
             ]),
 
             const SizedBox(height: 24),
@@ -161,7 +173,9 @@ class TestResultPage extends StatelessWidget {
                     onPressed: () {
                       Navigator.pushAndRemoveUntil(
                         context,
-                        MaterialPageRoute(builder: (context) => const DashboardPage()),
+                        MaterialPageRoute(
+                          builder: (context) => const DashboardPage(),
+                        ),
                         (route) => false,
                       );
                     },
@@ -253,7 +267,8 @@ class TestResultPage extends StatelessWidget {
   }
 
   void _shareResult(BuildContext context) {
-    final String shareText = '''
+    final String shareText =
+        '''
 NDT Test Sonucu: ${record.sonuc}
 
 📋 Test Bilgileri:

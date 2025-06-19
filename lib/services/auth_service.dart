@@ -31,6 +31,7 @@ class AuthService {
     required String fullName,
     required String sicilNo,
     required String ekip,
+    String rol = 'operator',
   }) async {
     try {
       UserCredential result = await _auth.createUserWithEmailAndPassword(
@@ -45,12 +46,22 @@ class AuthService {
         'fullName': fullName,
         'sicilNo': sicilNo,
         'ekip': ekip,
-        'rol': 'operator',
+        'rol': rol,
         'createdAt': DateTime.now(),
+        'lastLogin': DateTime.now(),
         'isActive': true,
       });
 
       return result;
+    } on FirebaseAuthException catch (e) {
+      throw _handleAuthException(e);
+    }
+  }
+
+  // Şifre sıfırlama
+  Future<void> resetPassword(String email) async {
+    try {
+      await _auth.sendPasswordResetEmail(email: email.trim());
     } on FirebaseAuthException catch (e) {
       throw _handleAuthException(e);
     }
@@ -64,18 +75,19 @@ class AuthService {
   // Kullanıcı verilerini al
   Future<Map<String, dynamic>?> getUserData() async {
     if (currentUser == null) return null;
-    
+
     try {
       DocumentSnapshot doc = await _firestore
           .collection('users')
           .doc(currentUser!.uid)
           .get();
-      
+
       if (doc.exists) {
         return doc.data() as Map<String, dynamic>;
       }
       return null;
     } catch (e) {
+      print('Kullanıcı verisi alınamadı: $e');
       return null;
     }
   }
@@ -93,6 +105,14 @@ class AuthService {
         return 'Şifre çok zayıf. En az 6 karakter olmalı.';
       case 'invalid-email':
         return 'Geçersiz email adresi.';
+      case 'user-disabled':
+        return 'Bu kullanıcı hesabı devre dışı bırakılmış.';
+      case 'too-many-requests':
+        return 'Çok fazla deneme yapıldı. Lütfen daha sonra tekrar deneyin.';
+      case 'network-request-failed':
+        return 'İnternet bağlantısı hatası.';
+      case 'invalid-credential':
+        return 'Geçersiz email veya şifre.';
       default:
         return 'Bir hata oluştu: ${e.message}';
     }

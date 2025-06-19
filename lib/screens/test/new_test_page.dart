@@ -14,7 +14,7 @@ class NewTestPage extends StatefulWidget {
 class _NewTestPageState extends State<NewTestPage> {
   final _formKey = GlobalKey<FormState>();
   final _pageController = PageController();
-  
+
   // Form controllers
   final _bolgeController = TextEditingController();
   final _contaNoController = TextEditingController();
@@ -27,17 +27,28 @@ class _NewTestPageState extends State<NewTestPage> {
   final _lengthController = TextEditingController();
   final _dbController = TextEditingController();
   final _depthStartController = TextEditingController();
-  
+
   // Dropdown değerleri
   String _selectedEkip = 'Ekip A';
   String _selectedMalzemeKalite = '16Mo3';
   String _selectedDegerlendirmeSeviyesi = 'KÖK';
-  
+
   int _currentPage = 0;
   bool _isLoading = false;
 
-  final List<String> _ekipList = ['Ekip A', 'Ekip B', 'Ekip C', 'Vardiya 1', 'Vardiya 2'];
-  final List<String> _malzemeKaliteList = ['16Mo3', '13CrMo4-5', 'P235GH', 'P265GH'];
+  final List<String> _ekipList = [
+    'Ekip A',
+    'Ekip B',
+    'Ekip C',
+    'Vardiya 1',
+    'Vardiya 2',
+  ];
+  final List<String> _malzemeKaliteList = [
+    '16Mo3',
+    '13CrMo4-5',
+    'P235GH',
+    'P265GH',
+  ];
   final List<String> _degerlendirmeSeviyesiList = ['KÖK', 'DOLGU', 'KAPATMA'];
 
   @override
@@ -139,10 +150,7 @@ class _NewTestPageState extends State<NewTestPage> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Hata: $e'),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text('Hata: $e'), backgroundColor: Colors.red),
         );
       }
     } finally {
@@ -193,7 +201,7 @@ class _NewTestPageState extends State<NewTestPage> {
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 20),
-          
+
           // Ekip Seçimi
           DropdownButtonFormField<String>(
             value: _selectedEkip,
@@ -202,10 +210,9 @@ class _NewTestPageState extends State<NewTestPage> {
               border: OutlineInputBorder(),
               prefixIcon: Icon(Icons.group),
             ),
-            items: _ekipList.map((ekip) => DropdownMenuItem(
-              value: ekip,
-              child: Text(ekip),
-            )).toList(),
+            items: _ekipList
+                .map((ekip) => DropdownMenuItem(value: ekip, child: Text(ekip)))
+                .toList(),
             onChanged: (value) => setState(() => _selectedEkip = value!),
           ),
           const SizedBox(height: 16),
@@ -219,7 +226,8 @@ class _NewTestPageState extends State<NewTestPage> {
               prefixIcon: Icon(Icons.location_on),
               hintText: 'Örn: 57KOLLEKTÖR',
             ),
-            validator: (value) => value?.isEmpty ?? true ? 'Bölge gerekli' : null,
+            validator: (value) =>
+                value?.isEmpty ?? true ? 'Bölge gerekli' : null,
           ),
           const SizedBox(height: 16),
 
@@ -232,7 +240,8 @@ class _NewTestPageState extends State<NewTestPage> {
               prefixIcon: Icon(Icons.tag),
               hintText: 'Örn: BK1-154-2',
             ),
-            validator: (value) => value?.isEmpty ?? true ? 'Conta No gerekli' : null,
+            validator: (value) =>
+                value?.isEmpty ?? true ? 'Conta No gerekli' : null,
           ),
           const SizedBox(height: 16),
 
@@ -256,7 +265,8 @@ class _NewTestPageState extends State<NewTestPage> {
               border: OutlineInputBorder(),
               prefixIcon: Icon(Icons.person),
             ),
-            validator: (value) => value?.isEmpty ?? true ? 'Kaynakçı No 1 gerekli' : null,
+            validator: (value) =>
+                value?.isEmpty ?? true ? 'Kaynakçı No 1 gerekli' : null,
           ),
           const SizedBox(height: 16),
 
@@ -330,11 +340,14 @@ class _NewTestPageState extends State<NewTestPage> {
               border: OutlineInputBorder(),
               prefixIcon: Icon(Icons.category),
             ),
-            items: _malzemeKaliteList.map((kalite) => DropdownMenuItem(
-              value: kalite,
-              child: Text(kalite),
-            )).toList(),
-            onChanged: (value) => setState(() => _selectedMalzemeKalite = value!),
+            items: _malzemeKaliteList
+                .map(
+                  (kalite) =>
+                      DropdownMenuItem(value: kalite, child: Text(kalite)),
+                )
+                .toList(),
+            onChanged: (value) =>
+                setState(() => _selectedMalzemeKalite = value!),
           ),
           const SizedBox(height: 16),
 
@@ -346,11 +359,14 @@ class _NewTestPageState extends State<NewTestPage> {
               border: OutlineInputBorder(),
               prefixIcon: Icon(Icons.layers),
             ),
-            items: _degerlendirmeSeviyesiList.map((seviye) => DropdownMenuItem(
-              value: seviye,
-              child: Text(seviye),
-            )).toList(),
-            onChanged: (value) => setState(() => _selectedDegerlendirmeSeviyesi = value!),
+            items: _degerlendirmeSeviyesiList
+                .map(
+                  (seviye) =>
+                      DropdownMenuItem(value: seviye, child: Text(seviye)),
+                )
+                .toList(),
+            onChanged: (value) =>
+                setState(() => _selectedDegerlendirmeSeviyesi = value!),
           ),
           const SizedBox(height: 20),
 
@@ -488,7 +504,9 @@ class _NewTestPageState extends State<NewTestPage> {
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: _getPreviewResult().contains('OK') ? Colors.green : Colors.red,
+                      color: _getPreviewResult().contains('OK')
+                          ? Colors.green
+                          : Colors.red,
                     ),
                   ),
                 ],
@@ -506,19 +524,18 @@ class _NewTestPageState extends State<NewTestPage> {
           _lengthController.text.isNotEmpty &&
           _dbController.text.isNotEmpty &&
           _depthStartController.text.isNotEmpty) {
-        
         double position = double.parse(_positionStartController.text);
         double length = double.parse(_lengthController.text);
         double db = double.parse(_dbController.text);
         double depth = double.parse(_depthStartController.text);
-        
+
         String result = NDTService.calculateTestResult(
           positionStart: position,
           lengthMm: length,
           db: db,
           depthStart: depth,
         );
-        
+
         return result == 'OK' ? '✅ Ön Sonuç: OK' : '❌ Ön Sonuç: KES';
       }
     } catch (e) {
@@ -552,19 +569,24 @@ class _NewTestPageState extends State<NewTestPage> {
                 label: const Text('Geri'),
               ),
             ),
-          
+
           if (_currentPage > 0) const SizedBox(width: 16),
-          
+
           // İleri/Bitir butonu
           Expanded(
             flex: _currentPage == 0 ? 1 : 2,
             child: ElevatedButton.icon(
-              onPressed: _isLoading ? null : (_currentPage == 2 ? _submitTest : _nextPage),
-              icon: _isLoading 
+              onPressed: _isLoading
+                  ? null
+                  : (_currentPage == 2 ? _submitTest : _nextPage),
+              icon: _isLoading
                   ? const SizedBox(
                       width: 20,
                       height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
                     )
                   : Icon(_currentPage == 2 ? Icons.check : Icons.arrow_forward),
               label: Text(_currentPage == 2 ? 'Testi Tamamla' : 'İleri'),

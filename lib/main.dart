@@ -4,15 +4,14 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'firebase_options.dart';
 import 'screens/auth/login_page.dart';
 import 'screens/home/dashboard_page.dart';
+import 'screens/admin/admin_dashboard_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Firebase başlatma
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-  
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
   runApp(const MyApp());
 }
 
@@ -57,12 +56,12 @@ class AuthWrapper extends StatelessWidget {
     return StreamBuilder<User?>(
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, snapshot) {
-        // Loading durumu
+        // Firebase bağlantısı kontrol ediliyor
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const SplashScreen();
         }
-        
-        // Kullanıcı giriş yapmış mı kontrol et
+
+        // Kullanıcı giriş yapmış mı?
         if (snapshot.hasData && snapshot.data != null) {
           return const DashboardPage();
         } else {
@@ -85,11 +84,7 @@ class SplashScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.engineering,
-              size: 100,
-              color: Colors.white,
-            ),
+            Icon(Icons.engineering, size: 100, color: Colors.white),
             SizedBox(height: 20),
             Text(
               'NDT Quality Control',
@@ -104,10 +99,7 @@ class SplashScreen extends StatelessWidget {
               valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
             ),
             SizedBox(height: 10),
-            Text(
-              'Yükleniyor...',
-              style: TextStyle(color: Colors.white70),
-            ),
+            Text('Yükleniyor...', style: TextStyle(color: Colors.white70)),
           ],
         ),
       ),
