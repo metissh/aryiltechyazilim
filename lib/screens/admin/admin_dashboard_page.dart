@@ -113,10 +113,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                                 ),
                                 const SizedBox(height: 4),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 4,
-                                  ),
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                   decoration: BoxDecoration(
                                     color: Colors.white.withOpacity(0.2),
                                     borderRadius: BorderRadius.circular(12),
@@ -150,49 +147,21 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 16),
-
+                  
                   Row(
                     children: [
-                      Expanded(
-                        child: _buildStatCard(
-                          'Toplam Kullanıcı',
-                          '25',
-                          Icons.people,
-                          Colors.blue,
-                        ),
-                      ),
+                      Expanded(child: _buildStatCard('Toplam Kullanıcı', '25', Icons.people, Colors.blue)),
                       const SizedBox(width: 16),
-                      Expanded(
-                        child: _buildStatCard(
-                          'Aktif Test',
-                          '156',
-                          Icons.assignment,
-                          Colors.green,
-                        ),
-                      ),
+                      Expanded(child: _buildStatCard('Aktif Test', '156', Icons.assignment, Colors.green)),
                     ],
                   ),
                   const SizedBox(height: 16),
-
+                  
                   Row(
                     children: [
-                      Expanded(
-                        child: _buildStatCard(
-                          'Bugün Test',
-                          '12',
-                          Icons.today,
-                          Colors.orange,
-                        ),
-                      ),
+                      Expanded(child: _buildStatCard('Bugün Test', '12', Icons.today, Colors.orange)),
                       const SizedBox(width: 16),
-                      Expanded(
-                        child: _buildStatCard(
-                          'Başarı Oranı',
-                          '%87',
-                          Icons.trending_up,
-                          Colors.purple,
-                        ),
-                      ),
+                      Expanded(child: _buildStatCard('Başarı Oranı', '%87', Icons.trending_up, Colors.purple)),
                     ],
                   ),
                   const SizedBox(height: 24),
@@ -203,7 +172,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 16),
-
+                  
                   GridView.count(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
@@ -264,7 +233,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 16),
-
+                  
                   Card(
                     elevation: 4,
                     shape: RoundedRectangleBorder(
@@ -316,8 +285,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                           child: SizedBox(
                             width: double.infinity,
                             child: TextButton.icon(
-                              onPressed: () =>
-                                  _showComingSoon('Tüm Aktiviteler'),
+                              onPressed: () => _showComingSoon('Tüm Aktiviteler'),
                               icon: const Icon(Icons.history),
                               label: const Text('Tüm Aktiviteleri Gör'),
                               style: TextButton.styleFrom(
@@ -337,7 +305,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 16),
-
+                  
                   Row(
                     children: [
                       Expanded(
@@ -373,15 +341,12 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     );
   }
 
-  Widget _buildStatCard(
-    String title,
-    String value,
-    IconData icon,
-    Color color,
-  ) {
+  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
     return Card(
       elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -419,16 +384,12 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     );
   }
 
-  Widget _buildAdminCard(
-    String title,
-    String subtitle,
-    IconData icon,
-    Color color,
-    VoidCallback onTap,
-  ) {
+  Widget _buildAdminCard(String title, String subtitle, IconData icon, Color color, VoidCallback onTap) {
     return Card(
       elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
@@ -443,7 +404,11 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                   color: color.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(icon, size: 32, color: color),
+                child: Icon(
+                  icon,
+                  size: 32,
+                  color: color,
+                ),
               ),
               const SizedBox(height: 12),
               Text(
@@ -459,7 +424,10 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
               const SizedBox(height: 4),
               Text(
                 subtitle,
-                style: const TextStyle(fontSize: 11, color: Colors.grey),
+                style: const TextStyle(
+                  fontSize: 11,
+                  color: Colors.grey,
+                ),
                 textAlign: TextAlign.center,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
@@ -471,13 +439,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     );
   }
 
-  Widget _buildActivityItem(
-    String user,
-    String action,
-    String time,
-    IconData icon,
-    Color color,
-  ) {
+  Widget _buildActivityItem(String user, String action, String time, IconData icon, Color color) {
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       leading: CircleAvatar(
@@ -487,12 +449,21 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
       ),
       title: Text(
         user,
-        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+        style: const TextStyle(
+          fontWeight: FontWeight.w600,
+          fontSize: 14,
+        ),
       ),
-      subtitle: Text(action, style: const TextStyle(fontSize: 13)),
+      subtitle: Text(
+        action,
+        style: const TextStyle(fontSize: 13),
+      ),
       trailing: Text(
         time,
-        style: const TextStyle(fontSize: 11, color: Colors.grey),
+        style: const TextStyle(
+          fontSize: 11,
+          color: Colors.grey,
+        ),
       ),
     );
   }
@@ -504,12 +475,16 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
           children: [
             const Icon(Icons.info, color: Colors.white),
             const SizedBox(width: 8),
-            Expanded(child: Text('$feature özelliği yakında aktif olacak!')),
+            Expanded(
+              child: Text('$feature özelliği yakında aktif olacak!'),
+            ),
           ],
         ),
         backgroundColor: Colors.purple,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
         duration: const Duration(seconds: 2),
       ),
     );
